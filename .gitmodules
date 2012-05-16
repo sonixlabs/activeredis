@@ -1,6 +1,0 @@
-[submodule "redis"]
-	path = redis
-	url = git://github.com/antirez/redis.git
-[submodule "redis-rb"]
-	path = redis-rb
-	url = git://github.com/ezmobius/redis-rb.git

@@ -5,7 +5,7 @@
     # Configure RSpec here
     
     config.before(:each) do
-      ActiveRedis::Base.connection.call_command [:flushall]
+      ActiveRedis::Base.connection.flushall
     end
   end
 #

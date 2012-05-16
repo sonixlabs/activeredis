@@ -1,10 +1,7 @@
 # to be aware of rails & stuff
 require 'rubygems'
-
-# latest stuff!
-Dir.chdir('redis-rb/lib') do
-  require 'redis'
-end
+require 'redis'
+require 'json'
 
 # Rails 3.0.0-beta needs to be installed
 require 'active_model'
@@ -33,6 +30,7 @@ module ActiveRedis
     #  called by to_json for_example
     attr_reader :attributes
     attr_reader :id
+    attr :frozen
     
     # INSTANCE METHODS
     
@@ -40,6 +38,7 @@ module ActiveRedis
       @id = id if id
       @attributes = {}
       initialize_attributes(attributes)
+      frozen = false
     end
     
     # Object's attributes' keys are converted to strings because of railsisms.
@@ -67,17 +66,23 @@ module ActiveRedis
       
       @id = self.class.fetch_new_identifier if creation
 
-      connection.multi do
-
-        if attributes_array.size > 0  
-          connection.call_command(["hmset", "#{key_namespace}:attributes"] + attributes_array)
-        end
-
-        connection.zadd("#{class_namespace}:all", @id, @id) 
-        
+      connection.multi
+      if attributes_array.size > 0  
+        connection.set("#{key_namespace}:attributes", attributes.to_json)
       end
+      connection.zadd("#{class_namespace}:all", @id, @id) 
+      connection.exec
             
       return true
+    end
+
+    def update_attributes(attributes)
+      initialize_attributes(attributes)
+      save
+    end
+
+    def reload
+      self.class.find(@id)
     end
     
     def new_record?
@@ -95,14 +100,18 @@ module ActiveRedis
     def connection
       self.class.connection
     end
-    
-    def delete
+
+    def destroy
       connection.multi do
         connection.del "#{key_namespace}:attributes"
         connection.zrem "#{class_namespace}:all", @id
+        @frozen = true
       end
-      
       return true     
+    end
+
+    def frozen?
+      @frozen
     end
     
     def add_attribute(name, value=nil)
@@ -110,6 +119,19 @@ module ActiveRedis
     end
     
     # CLASS METHODS
+    
+    # Run this method to declare the fields of your model.
+    def self.fields(*fields)
+      fields.each do |field|
+        define_method field.to_sym do
+          @attributes["#{field}"]  
+        end
+
+        define_method "#{field}=".to_sym do |new_value|
+          @attributes["#{field}"] = new_value.to_s
+        end
+      end
+    end
     
     def self.key_namespace
       "#{self}"
@@ -144,15 +166,66 @@ module ActiveRedis
       end
     end
 
+    def self.find_all
+      record = []
+      ids = connection.zrange "#{key_namespace}:all", 0, count
+      ids.each do |id|
+        record << find(id)
+      end
+      record
+    end
+
+    def self.all
+      find_all
+    end
+
+    def self.delete_all
+      records = find_all
+      records.each do |record|
+        record.destroy
+      end
+    end
+
     def self.find(id)
+      return find_all if id == :all
       exists = connection.zscore "#{key_namespace}:all", id
       raise RecordNotFound.new("Couldn't find #{self.name} with ID=#{id}") unless exists
-      
-      attributes = connection.hgetall "#{key_namespace}:#{id}:attributes"
-            
+      get_attributes = connection.get("#{key_namespace}:#{id}:attributes")
+      if get_attributes
+        attributes = JSON.parse(connection.get "#{key_namespace}:#{id}:attributes")
+      else
+        attributes = {}
+      end
       obj = self.new attributes, id
-      
       return obj
     end
+
+    def self.find_all_by_param(field, value)
+      finded = []
+      records = find_all
+      records.each do |record|
+        if record.attributes[field.to_s] == value.to_s
+          finded << record
+        end
+      end
+      return finded
+    end
+
+    def self.find_by_param(field, value)
+      records = find_all_by_param(field, value)
+      if records.size > 0
+        return records[0]
+      else
+        nil
+      end
+    end
+
+    def self.method_missing(name, *args)
+      return find_by_param($1.to_sym, args[0]) if name.to_s =~ /^find_by_(.*)/
+      return find_all_by_param($1.to_sym, args[0]) if name.to_s =~ /^find_all_by_(.*)/
+      super
+    end
+
   end
 end
+

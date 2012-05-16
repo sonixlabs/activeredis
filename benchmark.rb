@@ -1,5 +1,5 @@
+$LOAD_PATH << File.dirname(__FILE__) 
 require 'benchmark'
-
 require 'lib/active_redis'
 
 class Post < ActiveRedis::Base
@@ -50,7 +50,7 @@ Benchmark.bm(26) do |x|
     x.report("Delete posts: ") do
       howmany.times do |t|
         p = Post.find(calculate_offset(index, rounds)+t+1)
-        p.delete
+        p.destroy
       end
     end
     
