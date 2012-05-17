@@ -1,7 +1,6 @@
 # to be aware of rails & stuff
 require 'rubygems'
 require 'redis'
-require 'json'
 
 # Rails 3.0.0-beta needs to be installed
 require 'active_model'
