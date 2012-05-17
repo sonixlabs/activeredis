@@ -61,18 +61,16 @@ module ActiveRedis
     end
 
     def save
-      attributes_array = attributes.to_a.flatten
       creation = new_record?
-      
       @id = self.class.fetch_new_identifier if creation
-
       connection.multi
-      if attributes_array.size > 0  
-        connection.set("#{key_namespace}:attributes", attributes.to_json)
+      if @attributes.size > 0  
+        @attributes.each_pair { |key, value|
+          connection.hset("#{key_namespace}:attributes", key, value)
+        }
       end
       connection.zadd("#{class_namespace}:all", @id, @id) 
       connection.exec
-            
       return true
     end
 
@@ -190,12 +188,7 @@ module ActiveRedis
       return find_all if id == :all
       exists = connection.zscore "#{key_namespace}:all", id
       raise RecordNotFound.new("Couldn't find #{self.name} with ID=#{id}") unless exists
-      get_attributes = connection.get("#{key_namespace}:#{id}:attributes")
-      if get_attributes
-        attributes = JSON.parse(connection.get "#{key_namespace}:#{id}:attributes")
-      else
-        attributes = {}
-      end
+      attributes = connection.hgetall "#{key_namespace}:#{id}:attributes"
       obj = self.new attributes, id
       return obj
     end
@@ -228,4 +221,3 @@ module ActiveRedis
 
   end
 end
-

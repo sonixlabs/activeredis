@@ -24,9 +24,9 @@ pp tom = User.find_by_age(12) #=>#<User:0x00000101910c60 @attributes={"age"=>"12
 joe.destroy
 puts "count: #{User.count}" #=> 1
 
-tom.destroy
+User.delete_all
 puts "count: #{User.count}" #=> 0
 
 pp User.find_by_name("Tom") #=> nil
 
-User.delete_all
+
