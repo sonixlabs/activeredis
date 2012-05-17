@@ -19,9 +19,10 @@ A lot. ActiveRedis is currently designed to handle concurrency issues.  Use [OHM
 
 1. Clone the repository
 3. Install gems 
-    $ bundle install
+* bundle install
+
 4. Run spec
-    $ rspec spec/core_spec.rb
+* rspec spec/core_spec.rb
 
 ## Sample Code
 
