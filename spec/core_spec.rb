@@ -184,7 +184,7 @@ describe Cat do
     end
     
     it "should find existing cat" do
-      attributes_to_persist = {"fur" => "long", "eyes" => "blue"}
+      attributes_to_persist = {"name" => "", "age" => "", "fur" => "long", "eyes" => "blue"}
       c = Cat.new attributes_to_persist
       c.save
       

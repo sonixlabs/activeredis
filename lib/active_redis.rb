@@ -1,6 +1,7 @@
 # to be aware of rails & stuff
 require 'rubygems'
 require 'redis'
+require 'time'
 
 # Rails 3.0.0-beta needs to be installed
 require 'active_model'
@@ -43,19 +44,14 @@ module ActiveRedis
     # Object's attributes' keys are converted to strings because of railsisms.
     # Because of activeredisism, also values are converted to strings for consistency.
     def initialize_attributes(attributes)
+      fields = Hash[[@@fields, Array.new(@@fields.size)].transpose]
+      fields.stringify_keys!   # NEEDS to be strings for railsisms
       attributes.stringify_keys!   # NEEDS to be strings for railsisms
       attributes.each_pair { |key, value| attributes[key] = value.to_s }
-      @attributes.merge!(attributes)
-
-      (class << self; self; end).class_eval do
-        attributes.each_pair do |key, value|
-          define_method key.to_sym do
-            value
-          end
-          define_method "#{key}=".to_sym do |new_value|
-            @attributes["#{key}"] = new_value.to_s
-          end
-        end
+      fields.merge!(attributes)
+      @attributes.merge!(fields)
+      @attributes.each_pair do |key, value|
+        self.class.define_field key
       end
     end
 
@@ -65,6 +61,9 @@ module ActiveRedis
       connection.multi
       if @attributes.size > 0  
         @attributes.each_pair { |key, value|
+          if key.to_sym == :updated_at
+            value = Time.now.to_s
+          end
           connection.hset("#{key_namespace}:attributes", key, value)
         }
       end
@@ -79,7 +78,7 @@ module ActiveRedis
     end
 
     def reload
-      self.class.find(@id)
+      @attributes = connection.hgetall "#{key_namespace}:attributes"
     end
     
     def new_record?
@@ -117,19 +116,25 @@ module ActiveRedis
     
     # CLASS METHODS
     
-    # Run this method to declare the fields of your model.
-    def self.fields(*fields)
-      fields.each do |field|
-        define_method field.to_sym do
+    def self.define_field(field)
+      define_method field.to_sym do
+        if field.to_sym == :updated_at
+          Time.parse(@attributes["#{field}"])
+        else
           @attributes["#{field}"]  
         end
+      end
 
-        define_method "#{field}=".to_sym do |new_value|
-          @attributes["#{field}"] = new_value.to_s
-        end
+      define_method "#{field}=".to_sym do |new_value|
+        @attributes["#{field}"] = new_value.to_s
       end
     end
-    
+
+    # Run this method to declare the fields of your model.
+    def self.fields(*fields)
+      @@fields = fields
+    end
+
     def self.key_namespace
       "#{self}"
     end
