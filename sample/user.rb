@@ -18,18 +18,13 @@ user.country = "japan"
 user.save
 
 puts "count: #{User.count}" #=> 2
-joe = User.find_by_name("Joe") #=>#<User:0x0000010193e930 @attributes={"age"=>"22", "name"=>"Joe"}, @id="1">
-tom = User.find_by_name("Tom") #=>#<User:0x00000101910c60 @attributes={"age"=>"12", "name"=>"Tom", "country"=>"japan"}, @id="2">
-puts tom.updated_at
+pp joe = User.find_by_name("Joe") #=>#<User:0x0000010193e930 @attributes={"age"=>"22", "name"=>"Joe"}, @id="1">
+pp tom = User.find_by_name("Tom") #=>#<User:0x00000101910c60 @attributes={"age"=>"12", "name"=>"Tom", "country"=>"japan"}, @id="2">
 
-sleep 1
-tom.age = 20
-tom.age
-tom.save
+tom.update_attributes({:age => 20})
 #tom = User.find_by_age(20)
-pp tom.updated_at
 tom.reload
-pp tom.updated_at
+pp tom
 
 joe.destroy
 puts "count: #{User.count}" #=> 1

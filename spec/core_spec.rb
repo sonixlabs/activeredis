@@ -79,6 +79,14 @@ describe Cat do
       cat.add_attribute(:length, 2.5)
       cat.length.should == "2.5"
     end
+
+    it "should update a attribute" do
+      cat = Cat.new(:name => "mike", :color => "black")
+      cat.update_attributes({:name => "tama"})
+      cat.reload
+      cat.name.should == "tama"
+      cat.color.should == "black"
+    end
     
     it "should convert attribute values to string when creating new" do
       cat = Cat.new(:age => 2.5, :long => true, :length => 100)

@@ -73,7 +73,12 @@ module ActiveRedis
     end
 
     def update_attributes(attributes)
-      initialize_attributes(attributes)
+      attributes.stringify_keys!   # NEEDS to be strings for railsisms
+      attributes.each_pair { |key, value| attributes[key] = value.to_s }
+      @attributes.merge!(attributes)
+      attributes.each_pair do |key, value|
+        self.class.define_field key
+      end
       save
     end
 
