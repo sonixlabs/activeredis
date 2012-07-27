@@ -31,6 +31,8 @@ module ActiveRedis
     attr_reader :attributes
     attr_reader :id
     attr :frozen
+
+    class << self; attr_accessor :_fields; end
     
     # INSTANCE METHODS
     
@@ -44,7 +46,7 @@ module ActiveRedis
     # Object's attributes' keys are converted to strings because of railsisms.
     # Because of activeredisism, also values are converted to strings for consistency.
     def initialize_attributes(attributes)
-      fields = Hash[[@@fields, Array.new(@@fields.size)].transpose]
+      fields = Hash[[self.class._fields, Array.new(self.class._fields.size)].transpose]
       fields.stringify_keys!   # NEEDS to be strings for railsisms
       attributes.stringify_keys!   # NEEDS to be strings for railsisms
       attributes.each_pair { |key, value| attributes[key] = value.to_s }
@@ -137,7 +139,8 @@ module ActiveRedis
 
     # Run this method to declare the fields of your model.
     def self.fields(*fields)
-      @@fields = fields
+      self._fields ||= []
+      self._fields = fields
     end
 
     def self.key_namespace
