@@ -5,11 +5,16 @@ class Cat < ActiveRedis::Base
   fields :name, :age
 end
 
+class Dog < ActiveRedis::Base
+  fields :category, :name, :color
+end
+
 describe Cat do
 
   before(:each) do
     ActiveRedis::Base.connection.flushall
     @cat = Cat.new(:name => "lol")
+    @dog = Dog.new(:category => "Dachshund")
   end
 
   it "should be a rektive model" do
