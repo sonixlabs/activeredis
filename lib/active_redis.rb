@@ -21,6 +21,8 @@ module ActiveRedis
     include ActiveModel::Serialization
     include ActiveModel::Serializers::JSON
     include ActiveModel::Naming
+
+    QUEUED = "QUEUED"
     
     # RAILSISM
     # Returns a hash of all the attributes with their names as keys and the values of the attributes as values
@@ -170,7 +172,12 @@ module ActiveRedis
 
     def self.count
       begin
-        return connection.zcard "#{key_namespace}:all"
+        size = connection.zcard "#{key_namespace}:all"
+        while size == QUEUED
+          sleep(0.1)
+          size = connection.zcard "#{key_namespace}:all"
+        end
+        return size
       rescue RuntimeError => e
         return 0
       end
@@ -179,7 +186,7 @@ module ActiveRedis
     def self.find_all()
       record = []
       ids = connection.zrange "#{key_namespace}:all", 0, count
-      while ids == "QUEUED"
+      while ids == QUEUED
         sleep(0.1)
         ids = connection.zrange "#{key_namespace}:all", 0, count
       end
