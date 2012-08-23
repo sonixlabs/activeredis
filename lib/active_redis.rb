@@ -179,9 +179,9 @@ module ActiveRedis
     def self.find_all()
       record = []
       ids = connection.zrange "#{key_namespace}:all", 0, count
-      if ids == "QUEUED"
+      while ids == "QUEUED"
         sleep(0.1)
-        find_all()
+        ids = connection.zrange "#{key_namespace}:all", 0, count
       end
       ids.each do |id|
         record << find(id)
