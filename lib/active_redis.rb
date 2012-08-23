@@ -176,15 +176,12 @@ module ActiveRedis
       end
     end
 
-    def self.find_all(cnt = 0)
-      get_retry = cnt + 1
+    def self.find_all()
       record = []
       ids = connection.zrange "#{key_namespace}:all", 0, count
-      if ids == "QUEUED" && get_retry < 3
-        find_all(get_retry)
-      end
       if ids == "QUEUED"
-        raise "find_all result QUEUED !!"
+        sleep(0.1)
+        find_all()
       end
       ids.each do |id|
         record << find(id)
