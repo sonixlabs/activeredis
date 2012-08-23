@@ -185,13 +185,21 @@ module ActiveRedis
 
     def self.find_all()
       record = []
-      ids = connection.zrange "#{key_namespace}:all", 0, count
-      while ids == QUEUED
-        sleep(0.1)
+      # TODO Interim fix, "QUEUED" is find(id) rescue
+      while true
         ids = connection.zrange "#{key_namespace}:all", 0, count
-      end
-      ids.each do |id|
-        record << find(id)
+        while ids == QUEUED 
+          sleep(0.1)
+          ids = connection.zrange "#{key_namespace}:all", 0, count
+        end
+        begin
+          ids.each do |id|
+            record << find(id)
+          end
+        rescue
+          redo
+        end
+        break
       end
       record
     end
