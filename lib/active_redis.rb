@@ -7,7 +7,7 @@ require 'time'
 require 'active_model'
 
 class Module
-  def mattr_reader(*syms)
+  def module_attr_reader(*syms)
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         @@#{sym} = nil unless defined?(@@#{sym})
@@ -17,7 +17,7 @@ class Module
       EOS
     end
   end
-  def mattr_writer(*syms)
+  def module_attr_writer(*syms)
     syms.each do |sym|
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
@@ -26,14 +26,14 @@ class Module
       EOS
     end
   end
-  def mattr_accessor(*syms)
-    mattr_reader(*syms)
-    mattr_writer(*syms)
+  def module_attr_accessor(*syms)
+    module_attr_reader(*syms)
+    module_attr_writer(*syms)
   end
 end
 
 module ActiveRedis
-  mattr_accessor :host, :port
+  module_attr_accessor :host, :port
   @@host = "localhost"
   @@port = "6379"
 
