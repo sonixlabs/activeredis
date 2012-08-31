@@ -2,6 +2,8 @@ $LOAD_PATH << File.dirname(__FILE__) + "/../lib"
 require 'active_redis'
 require 'pp'
 
+# ActiveRedis.host = "localhost"
+# ActiveRedis.port = "6379"
 class User < ActiveRedis::Base
   fields "name", "age", "country", "updated_at"
 end

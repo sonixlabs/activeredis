@@ -6,8 +6,37 @@ require 'time'
 # Rails 3.0.0-beta needs to be installed
 require 'active_model'
 
+class Module
+  def mattr_reader(*syms)
+    syms.each do |sym|
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        @@#{sym} = nil unless defined?(@@#{sym})
+        def self.#{sym}()
+          return @@#{sym}
+        end
+      EOS
+    end
+  end
+  def mattr_writer(*syms)
+    syms.each do |sym|
+      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        def self.#{sym}=(obj)
+          @@#{sym} = obj
+        end
+      EOS
+    end
+  end
+  def mattr_accessor(*syms)
+    mattr_reader(*syms)
+    mattr_writer(*syms)
+  end
+end
+
 module ActiveRedis
-  
+  mattr_accessor :host, :port
+  @@host = "localhost"
+  @@port = "6379"
+
   class ActiveRedisError < StandardError
   end
   
@@ -166,7 +195,10 @@ module ActiveRedis
     end
     
     def self.inherited(child)
-      @@redis = Redis.new
+      puts "============================================"
+      puts "Redis.new(:host => #{ActiveRedis.host}, :port => #{ActiveRedis.port})"
+      puts "============================================"
+      @@redis = Redis.new(:host => ActiveRedis.host, :port => ActiveRedis.port)
       @@class = child
     end
     
