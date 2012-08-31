@@ -62,7 +62,16 @@ module ActiveRedis
     def save
       creation = new_record?
       @id = self.class.fetch_new_identifier if creation
-      connection.multi
+      log = Logger.new(STDOUT)      
+      while true
+        begin
+          connection.multi
+        rescue
+          sleep(0.1)
+          redo
+        end
+        break
+      end
       if @attributes.size > 0  
         @attributes.each_pair { |key, value|
           if key.to_sym == :updated_at
