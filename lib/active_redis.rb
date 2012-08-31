@@ -62,7 +62,6 @@ module ActiveRedis
     def save
       creation = new_record?
       @id = self.class.fetch_new_identifier if creation
-      log = Logger.new(STDOUT)      
       while true
         begin
           connection.multi
