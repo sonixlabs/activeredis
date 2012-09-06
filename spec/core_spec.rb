@@ -55,7 +55,7 @@ describe Cat do
       numeric_cat.age.should == "25"
       numeric_cat.length.should == "5.4"
     end
-    
+
     it "should add a new attribute to a persisted object" do
       @cat.save
       @cat.add_attribute(:color)
@@ -103,6 +103,12 @@ describe Cat do
       cat.attributes["long"].should == "true"
       cat.attributes["length"].should == "100"
     end
+
+    it "should create persisted object" do
+      Cat.create(:age => 100, :long => true, :length => 120)
+      Cat.find_by_age(100).age.should == "100"
+    end
+    
   end
   
   describe "persisting simple objects" do

@@ -159,8 +159,15 @@ module ActiveRedis
     def add_attribute(name, value=nil)
       initialize_attributes({name => value})
     end
+
     
+    #
     # CLASS METHODS
+    #
+
+    def self.create(attributes)
+      self.new(attributes).save
+    end
     
     def self.define_field(field)
       define_method field.to_sym do
