@@ -45,6 +45,10 @@ describe Cat do
     it "should have accessors for all attributes" do
       @cat.name.should == "lol"
     end
+
+    it "should get fields" do
+      Cat.get_fields.should == [:name, :age]
+    end
      
     it "should stringify all values" do
       numeric_cat = Cat.new(:age => 25, :length => 5.4)
@@ -241,9 +245,7 @@ describe Cat do
       Cat.find(@cat.id).name.should == new_name
       
     end
-    
-    
-    
+
   end
   
   
@@ -253,5 +255,5 @@ describe Cat do
       Cat.new.new_record?.should == true
     end
   end
-  
+
 end

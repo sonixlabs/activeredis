@@ -182,6 +182,10 @@ module ActiveRedis
       self._fields = fields
     end
 
+    def self.get_fields
+      self._fields
+    end
+
     def self.key_namespace
       "#{self}"
     end
@@ -195,9 +199,7 @@ module ActiveRedis
     end
     
     def self.inherited(child)
-      puts "============================================"
       puts "Redis.new(:host => #{ActiveRedis.host}, :port => #{ActiveRedis.port})"
-      puts "============================================"
       @@redis = Redis.new(:host => ActiveRedis.host, :port => ActiveRedis.port)
       @@class = child
     end
