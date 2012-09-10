@@ -298,6 +298,23 @@ module ActiveRedis
       return find_all_by_param($1.to_sym, args[0]) if name.to_s =~ /^find_all_by_(.*)/
       super
     end
-
+    
+    def self.delete_unused_field
+      ids = connection.zrange "#{key_namespace}:all", 0, count
+      if ids.size > 0
+        attributes = connection.hgetall "#{key_namespace}:#{ids[0]}:attributes"
+        now_keys   = self.get_fields
+        array = []
+        now_keys.each do |key|
+          array << key.to_s
+        end
+        attributes.reject! {|key| array.include? key }
+        attributes.keys.each do |delete_key|
+          ids.each do |id|
+            connection.hdel "#{key_namespace}:#{id}:attributes", delete_key
+          end
+        end
+      end
+    end
   end
 end
