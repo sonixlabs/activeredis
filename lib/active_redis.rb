@@ -160,6 +160,13 @@ module ActiveRedis
       initialize_attributes({name => value})
     end
 
+    def [](field)
+      send(field)
+    end
+  
+    def []=(field, value)
+      send(field+"=", value)
+    end
     
     #
     # CLASS METHODS
