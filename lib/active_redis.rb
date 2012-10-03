@@ -213,7 +213,7 @@ module ActiveRedis
     end
     
     def self.inherited(child)
-      puts "Redis.new(:host => #{ActiveRedis.host}, :port => #{ActiveRedis.port})"
+      #puts "Redis.new(:host => #{ActiveRedis.host}, :port => #{ActiveRedis.port})"
       @@redis = Redis.new(:host => ActiveRedis.host, :port => ActiveRedis.port)
       @@class = child
     end
