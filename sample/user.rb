@@ -1,4 +1,3 @@
-$LOAD_PATH << File.dirname(__FILE__) + "/../lib"
 require 'active_redis'
 require 'pp'
 

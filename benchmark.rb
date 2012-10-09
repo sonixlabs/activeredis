@@ -18,22 +18,22 @@ end
 Benchmark.bm(26) do |x|
 
   rounds = [1000,5000,10000]
-  
+
   rounds.each_with_index do |howmany, index|
-  
+
     x.report("Create #{howmany} posts: ") do
       howmany.times do |t|
         p = Post.new({ :topic => "a"*(8+rand(55)),
-                        :author => "a"*(8+rand(55)),
-                        :content => LOREM*(8+rand(55))})
+                     :author => "a"*(8+rand(55)),
+                     :content => LOREM*(8+rand(55))})
         p.save
       end
     end
-      
+
     x.report("Count posts: ") do
       Post.count
     end
-    
+
     x.report("Find posts: ") do
       howmany.times do |t|
         p = Post.find(calculate_offset(index, rounds)+t+1)
@@ -46,14 +46,14 @@ Benchmark.bm(26) do |x|
         p.save
       end
     end
-    
+
     x.report("Delete posts: ") do
       howmany.times do |t|
         p = Post.find(calculate_offset(index, rounds)+t+1)
         p.destroy
       end
     end
-    
+
     puts
   end
 

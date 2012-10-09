@@ -1,3 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
-gem 'redis'
+# Specify your gem's dependencies in alc-cmd.gemspec
+gemspec

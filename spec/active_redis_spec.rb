@@ -1,5 +1,4 @@
-$LOAD_PATH << File.dirname(__FILE__) + "/../"
-require 'lib/active_redis'
+require 'spec_helper'
 
 class Cat < ActiveRedis::Base
   fields :name, :age

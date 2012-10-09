@@ -1,10 +1,8 @@
-# to be aware of rails & stuff
-require 'rubygems'
 require 'redis'
 require 'time'
-
-# Rails 3.0.0-beta needs to be installed
 require 'active_model'
+
+require 'active_model/version'
 
 class Module
   def module_attr_reader(*syms)

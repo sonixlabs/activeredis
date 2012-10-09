@@ -1,15 +1,10 @@
-# Use this to configure various configurable aspects of
-# RSpec:
-#
-  Spec::Runner.configure do |config|
-    # Configure RSpec here
-    
-    config.before(:each) do
-      ActiveRedis::Base.connection.flushall
-    end
+require 'rubygems'
+require 'bundler/setup'
+
+require 'activeredis' # and any other gems you need
+
+RSpec.configure do |config|
+  config.before(:each) do
+    ActiveRedis::Base.connection.flushall
   end
-#
-# The yielded <tt>configuration</tt> object is a
-# Spec::Runner::Configuration instance. See its RDoc
-# for details about what you can do with it.
-#
+end
