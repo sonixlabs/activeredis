@@ -6,8 +6,8 @@ require 'active_redis/version'
 Gem::Specification.new do |gem|
   gem.name          = "activeredis"
   gem.version       = ActiveRedis::VERSION
-  gem.authors       = ["sonixlabs"]
-  gem.email         = ["sonixlabs@sonix.asia"]
+  gem.authors       = ["Kazuhiro Yamada", "Yuta Hirakawa"]
+  gem.email         = ["sonixlabs@sonix.asia", "kyamada@sonix.asia"]
   gem.description   = %q{ActiveModel based object persistance library for Redis}
   gem.summary       = %q{ActiveModel based object persisting library for Redis key-value database.}
   gem.homepage      = "https://github.com/sonixlabs/activeredis"
