@@ -89,18 +89,26 @@ module ActiveRedis
     def save
       creation = new_record?
       @id = self.class.fetch_new_identifier if creation
-      connection.multi do
-        if @attributes.size > 0
-          @attributes.each_pair { |key, value|
-            if key.to_sym == :updated_at
-              value = Time.now.to_s
-            end
-            connection.hset("#{key_namespace}:attributes", key, value)
-          }
+      while true
+        begin
+          connection.multi
+        rescue
+          sleep(0.1)
+          redo
         end
-        connection.zadd("#{class_namespace}:all", @id, @id) 
+        break
       end
-      true
+      if @attributes.size > 0
+        @attributes.each_pair { |key, value|
+          if key.to_sym == :updated_at
+            value = Time.now.to_s
+          end
+          connection.hset("#{key_namespace}:attributes", key, value)
+        }
+      end
+      connection.zadd("#{class_namespace}:all", @id, @id) 
+      connection.exec
+      return true
     end
 
     def update_attributes(attributes)
@@ -217,17 +225,38 @@ module ActiveRedis
     end
 
     def self.count
-      size = connection.zcard "#{key_namespace}:all"
+      begin
+        size = connection.zcard "#{key_namespace}:all"
+        while size == QUEUED
+          sleep(0.1)
+          size = connection.zcard "#{key_namespace}:all"
+        end
+        return size
+      rescue RuntimeError => e
+        return 0
+      end
     end
 
     def self.find_all()
-      records = []
+      record = []
       # TODO Interim fix, "QUEUED" is find(id) rescue
-      ids = connection.zrange "#{key_namespace}:all", 0, count
-      ids.each do |id|
-        records << find(id)
+      while true
+        ids = nil
+        while true
+          ids = connection.zrange "#{key_namespace}:all", 0, count
+          break if ids != QUEUED
+          sleep(0.1)
+        end
+        begin
+          ids.each do |id|
+            record << find(id)
+          end
+        rescue
+          redo
+        end
+        break
       end
-      records
+      record
     end
 
     def self.all
@@ -263,14 +292,11 @@ module ActiveRedis
 
     def self.find_by_param(field, value)
       records = find_all_by_param(field, value)
-      ids = connection.zrange "#{key_namespace}:all", 0, count
-      ids.each do |id|
-        record = find(id)
-        if record.attributes[field.to_s] == value.to_s
-          return record
-        end
+      if records.size > 0
+        return records[0]
+      else
+        nil
       end
-      nil
     end
 
     def self.method_missing(name, *args)
