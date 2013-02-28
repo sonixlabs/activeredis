@@ -99,7 +99,7 @@ module ActiveRedis
           }
         end
         if ActiveRedis.fast_find_field != nil
-          connection.hset("#{class_namespace}:fast_find_field", @attributes[ActiveRedis.fast_find_field.to_s], @id)
+          connection.hset("#{class_namespace}:fast_find_field", @attributes[ActiveRedis.fast_find_field.to_s].to_s, @id)
         end
         connection.zadd("#{class_namespace}:all", @id, @id)
       end
