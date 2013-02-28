@@ -98,7 +98,7 @@ module ActiveRedis
             connection.hset("#{key_namespace}:attributes", key, value)
           }
         end
-        connection.zadd("#{class_namespace}:all", @id, @id) 
+        connection.zadd("#{class_namespace}:all", @id, @id)
       end
       true
     end
@@ -171,7 +171,7 @@ module ActiveRedis
         if field.to_sym == :updated_at
           Time.parse(@attributes["#{field}"])
         else
-          @attributes["#{field}"]  
+          @attributes["#{field}"]
         end
       end
 
@@ -262,7 +262,6 @@ module ActiveRedis
     end
 
     def self.find_by_param(field, value)
-      records = find_all_by_param(field, value)
       ids = connection.zrange "#{key_namespace}:all", 0, count
       ids.each do |id|
         record = find(id)
