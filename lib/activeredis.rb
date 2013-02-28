@@ -100,6 +100,9 @@ module ActiveRedis
         end
         if ActiveRedis.fast_find_field != nil
           connection.hset("#{class_namespace}:fast_find_field", @attributes[ActiveRedis.fast_find_field.to_s].to_s, @id)
+          if self.class._fields.include?(:no)
+            connection.hset("#{class_namespace}:no", @attributes[:no.to_s].to_s, @id)
+          end
         end
         connection.zadd("#{class_namespace}:all", @id, @id)
       end
@@ -265,10 +268,8 @@ module ActiveRedis
     end
 
     def self.find_by_param(field, value)
-      if ActiveRedis.fast_find_field != nil && ActiveRedis.fast_find_field == field
-        id = connection.hget "#{key_namespace}:fast_find_field", value
-        return find(id) if id != nil
-      end
+      find_id = self.fast_find_by_param(field, value)
+      return find(find_id) if find_id != nil
       ids = connection.zrange "#{key_namespace}:all", 0, count
       ids.each do |id|
         record = find(id)
@@ -277,6 +278,14 @@ module ActiveRedis
         end
       end
       nil
+    end
+
+    def self.fast_find_by_param(field, value)
+      if ActiveRedis.fast_find_field != nil && ActiveRedis.fast_find_field == field
+        find_id = connection.hget "#{key_namespace}:fast_find_field", value
+      elsif field == :no
+        find_id = connection.hget "#{key_namespace}:no", value
+      end
     end
 
     def self.method_missing(name, *args)
