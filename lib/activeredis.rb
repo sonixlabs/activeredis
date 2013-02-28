@@ -245,6 +245,9 @@ module ActiveRedis
       records.each do |record|
         record.destroy
       end
+      if ActiveRedis.fast_find_field != nil
+        connection.del "#{key_namespace}:fast_find_field", "#{key_namespace}:no"
+      end
     end
 
     def self.find(id)
