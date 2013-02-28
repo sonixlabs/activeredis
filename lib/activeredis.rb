@@ -31,7 +31,7 @@ class Module
 end
 
 module ActiveRedis
-  module_attr_accessor :host, :port
+  module_attr_accessor :host, :port, :fast_find_field
   @@host = "localhost"
   @@port = "6379"
 
@@ -97,6 +97,9 @@ module ActiveRedis
             end
             connection.hset("#{key_namespace}:attributes", key, value)
           }
+        end
+        if ActiveRedis.fast_find_field != nil
+          connection.hset("#{class_namespace}:fast_find_field", @attributes[ActiveRedis.fast_find_field.to_s], @id)
         end
         connection.zadd("#{class_namespace}:all", @id, @id)
       end
@@ -262,6 +265,10 @@ module ActiveRedis
     end
 
     def self.find_by_param(field, value)
+      if ActiveRedis.fast_find_field != nil && ActiveRedis.fast_find_field == field
+        id = connection.hget "#{key_namespace}:fast_find_field", value
+        return find(id) if id != nil
+      end
       ids = connection.zrange "#{key_namespace}:all", 0, count
       ids.each do |id|
         record = find(id)
