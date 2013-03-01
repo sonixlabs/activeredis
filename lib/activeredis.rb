@@ -141,6 +141,12 @@ module ActiveRedis
 
     def destroy
       connection.multi do
+        if ActiveRedis.fast_find_field != nil
+          connection.hdel "#{class_namespace}:fast_find_field", @attributes[ActiveRedis.fast_find_field.to_s].to_s
+          if self.class._fields.include?(:no)
+            connection.hdel "#{class_namespace}:no", @attributes[:no.to_s].to_s
+          end
+        end
         connection.del "#{key_namespace}:attributes"
         connection.zrem "#{class_namespace}:all", @id
         @frozen = true
