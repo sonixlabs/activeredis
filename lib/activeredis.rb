@@ -294,7 +294,7 @@ module ActiveRedis
 
     def self.fast_find_by_param(field, value)
       find_id = nil
-      if ActiveRedis.fast_find_field != nil && ActiveRedis.fast_find_field == field
+      if ActiveRedis.fast_find_field == field
         find_id = connection.hget "#{key_namespace}:fast_find_field", value
       elsif field == :no
         find_id = connection.hget "#{key_namespace}:no", value
