@@ -237,7 +237,9 @@ module ActiveRedis
       # TODO Interim fix, "QUEUED" is find(id) rescue
       ids = connection.zrange "#{key_namespace}:all", 0, count
       ids.each do |id|
-        records << find(id)
+        record = find(id)
+        records << record if record
+        #records << find(id)
       end
       records
     end
@@ -259,7 +261,8 @@ module ActiveRedis
     def self.find(id)
       return find_all if id == :all
       exists = connection.zscore "#{key_namespace}:all", id
-      raise RecordNotFound.new("Couldn't find #{self.name} with ID=#{id}") unless exists
+      return nil unless exists
+      #raise RecordNotFound.new("Couldn't find #{self.name} with ID=#{id}") unless exists
       attributes = connection.hgetall "#{key_namespace}:#{id}:attributes"
       obj = self.new attributes, id
       return obj
@@ -269,7 +272,7 @@ module ActiveRedis
       finded = []
       records = find_all
       records.each do |record|
-        if record.attributes[field.to_s] == value.to_s
+        if record && record.attributes[field.to_s] == value.to_s
           finded << record
         end
       end
@@ -282,7 +285,7 @@ module ActiveRedis
       ids = connection.zrange "#{key_namespace}:all", 0, count
       ids.each do |id|
         record = find(id)
-        if record.attributes[field.to_s] == value.to_s
+        if record && record.attributes[field.to_s] == value.to_s
           return record
         end
       end
@@ -290,11 +293,13 @@ module ActiveRedis
     end
 
     def self.fast_find_by_param(field, value)
+      find_id = nil
       if ActiveRedis.fast_find_field != nil && ActiveRedis.fast_find_field == field
         find_id = connection.hget "#{key_namespace}:fast_find_field", value
       elsif field == :no
         find_id = connection.hget "#{key_namespace}:no", value
       end
+      find_id
     end
 
     def self.method_missing(name, *args)
